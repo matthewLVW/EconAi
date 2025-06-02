@@ -1,6 +1,5 @@
 from openai import OpenAI
 import os
-os.environ["OPENAI_API_KEY"] = "SECRETKEY"
 client = OpenAI()
 
 def generate_peter_stewie_script(topic: str, 
