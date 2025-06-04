@@ -26,13 +26,16 @@ Usage:
 
 import os
 import sys
+import random
 import requests
 import tempfile
 from pydub import AudioSegment
+from dotenv import load_dotenv
+load_dotenv()
 
 # Replace these with your actual Eleven Labs voice IDs
-STEWIE_VOICE_ID = "your_stewie_voice_id"
-PETER_VOICE_ID = "your_peter_voice_id"
+STEWIE_VOICE_ID = "DL63rxhw9dXPUx8xlBxa"
+PETER_VOICE_ID = "oRgIPTyhED338KvRzKFh"
 
 ELEVEN_LABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 if not ELEVEN_LABS_API_KEY:
@@ -53,9 +56,10 @@ def tts_generate(voice_id: str, text: str) -> bytes:
     }
     payload = {
         "text": text,
+        "model_id": "eleven_multilingual_v2",
         "voice_settings": {
-            "stability": 0.5,
-            "similarity_boost": 0.75
+            "stability": 0.7,
+            "similarity_boost": 0.9
         }
     }
     response = requests.post(url, json=payload, headers=headers)
@@ -85,19 +89,18 @@ def parse_script_file(script_path: str) -> list:
 
 
 def generate_and_concatenate(script_lines: list, output_path: str = "output.mp3"):
-    """
-    For each (speaker, text) in script_lines, generates an audio clip using
-    the corresponding voice, then concatenates all clips in order and saves
-    a single MP3 to output_path.
-    """
     audio_segments = []
     temp_files = []
 
+    os.makedirs("AudioTemp", exist_ok=True)
+    speaker_counts = {"stewie": 0, "peter": 0}
+
     try:
         for speaker, text in script_lines:
-            if speaker.lower() == "stewie":
+            speaker_lower = speaker.lower()
+            if speaker_lower == "stewie":
                 voice_id = STEWIE_VOICE_ID
-            elif speaker.lower() == "peter":
+            elif speaker_lower == "peter":
                 voice_id = PETER_VOICE_ID
             else:
                 print(f"Warning: Unrecognized speaker '{speaker}'. Skipping line.")
@@ -106,12 +109,19 @@ def generate_and_concatenate(script_lines: list, output_path: str = "output.mp3"
             print(f"Generating audio for {speaker}: \"{text[:30]}...\"")
             audio_bytes = tts_generate(voice_id, text)
 
-            # Save to a temporary file
+            # Save to temporary file
             tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
             tmp_file.write(audio_bytes)
             tmp_file.flush()
             tmp_file.close()
             temp_files.append(tmp_file.name)
+
+            # Save individual file to AudioTemp
+            speaker_counts[speaker_lower] += 1
+            numbered_filename = f"{speaker.capitalize()}{speaker_counts[speaker_lower]}.mp3"
+            output_individual_path = os.path.join("AudioTemp", numbered_filename)
+            with open(output_individual_path, "wb") as f:
+                f.write(audio_bytes)
 
             # Load with pydub
             segment = AudioSegment.from_file(tmp_file.name, format="mp3")
@@ -123,7 +133,8 @@ def generate_and_concatenate(script_lines: list, output_path: str = "output.mp3"
         # Concatenate all segments
         combined = audio_segments[0]
         for seg in audio_segments[1:]:
-            combined += seg
+            random_pause = AudioSegment.silent(duration=random.randint(200, 400))
+            combined += random_pause + seg
 
         # Export final audio
         combined.export(output_path, format="mp3")
@@ -145,7 +156,7 @@ def main():
         sys.exit(1)
 
     script_lines = parse_script_file(script_path)
-    #generate_and_concatenate(script_lines)
+    generate_and_concatenate(script_lines)
     print(script_lines)
 
 if __name__ == "__main__":
