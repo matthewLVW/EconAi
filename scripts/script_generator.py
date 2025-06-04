@@ -1,9 +1,11 @@
 from openai import OpenAI
 import os
+from dotenv import load_dotenv
+load_dotenv()
 client = OpenAI()
 
 def generate_peter_stewie_script(topic: str, 
-                                 model: str = "gpt-3.5-turbo",  # ← changed from "gpt-4"
+                                 model: str = "gpt-4.1",  # ← changed from "gpt-4"
                                  max_tokens: int = 500, 
                                  temperature: float = 0.8) -> str:
     """
@@ -21,26 +23,35 @@ def generate_peter_stewie_script(topic: str,
     """
     # 1. Build a “system” message that frames the overall style and format:
     system_message = {
-        "role": "system",
-        "content": (
-            "You are a world-class comedic scriptwriter who knows the voices and "
-            "mannerisms of Peter Griffin (from Family Guy) and Stewie Griffin. Your task is to produce "
-            "a compact, 60-90 second script where Peter Griffin explains a specified economic topic, "
-            "concept, or historical event to Stewie in an engaging, witty, and informative way. "
-            "The tone should be vibrant, fast-paced, and optimized for TikTok/Reels (vertical shorts), "
-            "with clear, mass-market language. Keep the explanations accurate but approachable, "
-            "and lean into humor without alienating viewers who know little to nothing about economics. "
-            "Structure the dialogue so that:\n"
-            "  1. stewie opens with a hook—like question that grabs attention immediately and is relevant to the concept\n"
-            "  2. Peter responds with a quick, witty setup that introduces the topic in a way that feels natural and engaging.\n"
-            "  3. Stewie asks a quick clarifying question and reacts in characteristic fashion, keep stewie's lines minimal and focus on peter's high quality explanation. The meat is the accessible explanation of complex topics, not the humor.\n"
-            "  4. Peter dives into the core explanation, using analogies or simple examples. The explanation should be thorough, educated, and witty. This script is intended to genuinely teach people new concepts, not just witty moments\n"
-            "  5. Optimize the script for tiktok/reels by keeping it engaging, fast-pace, but incredibly high quality. The script should be punchy, with quick back-and-forth banter that keeps the viewer engaged.\n"
-            "  6. Peter ends with a punchy takeaway or “so that’s why” moment to wrap up.\n"
-            "Output strictly as dialogue lines prefixed with “Peter:” or “Stewie:”. "
-            "Do not include any stage directions or external commentary."
-        )
-    }
+    "role": "system",
+    "content": (
+        "You are a world-class economist, orator, and scriptwriter for AI voice bots. "
+        "You specialize in writing scripts that can be fed into AI voice models to produce smooth, natural-sounding dialogue. "
+        
+        "Write the script with pacing and intonation in mind. Keep sentences medium-length and structurally similar between speakers. "
+        "Avoid short, choppy sentences or overly long ones. Use commas to signal slight pauses, and end most lines with periods. "
+        "This will help maintain a natural, even cadence when spoken by AI.\n\n"
+
+        "Maintain consistent emotional tone and speech rhythm across the entire conversation. "
+        "Avoid any sudden tonal shifts or overly dramatic phrases that would make each line sound disconnected when voiced separately.\n\n"
+
+        "Make sure Stewie and Peter sound like they're part of a continuous conversation, not like separate narrators. "
+        "Use repetition of certain words, parallel sentence structures, and shared phrasing cues to glue the dialogue together.\n\n"
+
+        "You are familiar with the mannerisms of Peter Griffin and Stewie Griffin from Family Guy. "
+        "Your task is to produce a 75–90 second script where Peter Griffin explains a specified economic topic thoroughly. "
+        "The tone should be vibrant, educated, and optimized for TikTok/Reels. Use clear, mass-market language to bring elite financial knowledge to the general public.\n\n"
+
+        "Avoid excessive punctuation like ellipses. Avoid stage directions. Only output dialogue lines prefixed with 'Peter:' or 'Stewie:'.\n\n"
+
+        "Structure the dialogue so that:\n"
+        "  1. Stewie opens with a question that hooks the audience and introduces the topic.\n"
+        "  2. Peter gives a quick, witty setup that introduces the theme clearly.\n"
+        "  3. The explanation unfolds mainly through Peter's detailed and relatable answers, while Stewie offers brief clarifying questions to guide the flow.\n"
+        "  4. Peter ends with a clean takeaway or 'so that’s why' moment to leave the viewer smarter.\n"
+    )
+}
+ 
 
     # 2. Build a “user” message that inserts the specific topic:
     user_message = {
@@ -67,7 +78,7 @@ def generate_peter_stewie_script(topic: str,
 # Example usage:
 if __name__ == "__main__":
     # Example: “What happened to cause the 2008 financial collapse”
-    #prompt_topic = "What is an LLC and why do rich people have them personally?" 
-    prompt_topic = "What are put options?"
+    prompt_topic = "What is an LLC and why do rich people have them personally?" 
+    #prompt_topic = "What are put options?"
     script = generate_peter_stewie_script(prompt_topic)
     print(script)
