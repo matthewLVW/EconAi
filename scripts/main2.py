@@ -1,7 +1,7 @@
 import json
 import os
 from scripts.generate_captions_data import syllable_chunked_captions
-
+import re
 from moviepy import (
     VideoFileClip,
     AudioFileClip,
@@ -13,19 +13,21 @@ from moviepy import (
 )
 
 # === CONFIGURATION ===
-VIDEO_PATH = "SO6.mp4"
-CAPTIONS_PATH = "captions.json"
-FONT_PATH = "fonts/Bangers-Regular.ttf"
-FINAL_OUTPUT = "final_captioned_video2.mp4"
+VIDEO_PATH = "assets/backgrounds/SO6.mp4"
+CAPTIONS_PATH = "output/captions.json"
+FONT_PATH = "assets/fonts/Bangers-Regular.ttf"
 FONT_SIZE = 85
 STEWIE_COLOR = "#ADD8E6"  # Light blue
 PETER_COLOR = "#FFD700"   # Light gold
 CAPTION_WIDTH_PCT = 0.90
 STROKE_WIDTH = 2
 STROKE_COLOR = "black"
-PETER_IMG_PATH = "images/peter_resized.png"
-STEWIE_IMG_PATH = "images/stewie_resized.png"
+PETER_IMG_PATH = "assets/images/peter_resized.png"
+STEWIE_IMG_PATH = "assets/images/stewie_resized.png"
 CHAR_IMG_HEIGHT = 500  # You can adjust for size
+
+def safe_filename(text: str) -> str:
+    return re.sub(r'[^a-zA-Z0-9_\-]', '_', text.strip().lower())
 
 # === LOAD CAPTIONS ===
 def load_captions(path):
@@ -95,7 +97,7 @@ def create_character_overlay(speaker, start, end, video_width, video_height):
     return [img_clip]
 
 # === MAIN FUNCTION ===
-def assemble_video():
+def assemble_video(topic: str):
     audioCAP_data = load_captions(CAPTIONS_PATH)
     caption_data = syllable_chunked_captions(audioCAP_data)  # 👈 Add this line
     # Load background video and adjust
@@ -132,7 +134,7 @@ def assemble_video():
             continue
 
     print(f"[INFO] Total overlay clips created: {len(overlay_clips)}")
-
+    FINAL_OUTPUT = os.path.join("output", f"{safe_filename(topic)}.mp4")
     # Final composite
     final_video = CompositeVideoClip([video] + overlay_clips)
     final_video = final_video.with_audio(dialogue_audio)

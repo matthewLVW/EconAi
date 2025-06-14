@@ -1,84 +1,119 @@
-from openai import OpenAI
+import json
 import os
+from openai import OpenAI
 from dotenv import load_dotenv
+
 load_dotenv()
 client = OpenAI()
 
-def generate_peter_stewie_script(topic: str, 
-                                 model: str = "gpt-4.1",  # ← changed from "gpt-4"
-                                 max_tokens: int = 500, 
-                                 temperature: float = 0.8) -> str:
-    """
-    Given an economic topic, concept, or historical event (e.g., "What happened to cause the 2008 financial collapse"),
-    constructs a structured, high-energy LLM prompt and invokes the OpenAI API to produce a short (30–60 second)
-    script in which Peter Griffin explains that topic to Stewie. The output is formatted as a dialogue, 
-    optimized for TikTok/Reels and designed to be lively, witty, and accessible but still read as quite formal and educational.
 
-    Requirements:
-      • Assumes `openai.api_key` is set in your environment (e.g., export OPENAI_API_KEY="…").
-      • Adjust `model`, `max_tokens`, and `temperature` as needed.
-
-    Returns:
-      A string containing the generated script.
-    """
-    # 1. Build a “system” message that frames the overall style and format:
-    system_message = {
-    "role": "system",
+def build_user_message(topic: str):
+    return {
+    "role": "user",
     "content": (
-        "You are a world-class economist, orator, and scriptwriter for AI voice bots. "
-        "You specialize in writing scripts that can be fed into AI voice models to produce smooth, natural-sounding dialogue. "
-        
-        "Write the script with pacing and intonation in mind. Keep sentences medium-length and structurally similar between speakers. "
-        "Avoid short, choppy sentences or overly long ones. Use commas to signal slight pauses, and end most lines with periods. "
-        "This will help maintain a natural, even cadence when spoken by AI.\n\n"
-
-        "Maintain consistent emotional tone and speech rhythm across the entire conversation. "
-        "Avoid any sudden tonal shifts or overly dramatic phrases that would make each line sound disconnected when voiced separately.\n\n"
-
-        "Make sure Stewie and Peter sound like they're part of a continuous conversation, not like separate narrators. "
-        "Use repetition of certain words, parallel sentence structures, and shared phrasing cues to glue the dialogue together.\n\n"
-
-        "You are familiar with the mannerisms of Peter Griffin and Stewie Griffin from Family Guy. "
-        "Your task is to produce a 75–90 second script where Peter Griffin explains a specified economic topic thoroughly. "
-        "The tone should be vibrant, educated, and optimized for TikTok/Reels. Use clear, mass-market language to bring elite financial knowledge to the general public.\n\n"
-
-        "Avoid excessive punctuation like ellipses. Avoid stage directions. Only output dialogue lines prefixed with 'Peter:' or 'Stewie:'.\n\n"
-
-        "Structure the dialogue so that:\n"
-        "  1. Stewie opens with a question that hooks the audience and introduces the topic.\n"
-        "  2. Peter gives a quick, witty setup that introduces the theme clearly.\n"
-        "  3. The explanation unfolds mainly through Peter's detailed and relatable answers, while Stewie offers brief clarifying questions to guide the flow.\n"
-        "  4. Peter ends with a clean takeaway or 'so that’s why' moment to leave the viewer smarter.\n"
+        f"Write a script where Stewie Griffin asks Peter Griffin to explain: “{topic}”.\n"
+        "Make sure Stewie's **first line is sharp, modern, and question-driven** — no weird references or rambling setups. "
+        "It should immediately make the viewer curious or feel like they’re overhearing something valuable.\n\n"
+        "The script should be no longer than 45 seconds when spoken aloud. Use humor, pop-culture analogies, and everyday phrasing. "
+        "Keep it engaging but focused. Format as plain dialogue only, ready to be spoken by voice models."
+        "Stewie’s opening line MUST be a single, urgent question — no slow intros, no filler I.E. peter, what is x, Peter why does Y, Peter what caused Z but do not paraphrase the users question, it should be a bare bones expression of the question. "
+        "The script should be under 45 seconds spoken. "
     )
 }
- 
 
-    # 2. Build a “user” message that inserts the specific topic:
-    user_message = {
-        "role": "user",
-        "content": (
-            f"I want a script where Stewie Griffin asks Peter Griffin  to explain: “{topic}”. "
-            "Ensure it fits into a 60–90 second short, with energy and humor suited for TikTok/Reels. "
-            "Focus on making complex ideas simple, lively, and memorable. "
-            "Use Family Guy–style banter. Keep the dialogue punchy but focus on informative aswell."
+def build_system_message():
+    return {
+    "role": "system",
+    "content": (
+        "You write short, engaging scripts between Stewie and Peter Griffin, optimized for TikTok/Reels. "
+        "The goal is to teach a concept quickly while sounding like a real, fluid conversation between AI voices.\n\n"
+
+        "Hook structure:\n"
+        "1. Hook (0–3s): Stewie asks a *direct*, attention-grabbing question related to the topic — no fluff, no weird metaphors. "
+        "Avoid unrelated jokes. Make the viewer think, 'Wait, I want to know this.'\n"
+        "+ Stewie opens with a *single*, sharp, question, avoid humor, follow the user prompt"
+        "+ Do NOT use phrases like “why do people say” or “what is X and why Y”. Just ask one urgent question."
+        "+ Assume the audience has 2 seconds to be convinced this is worth watching."
+        "2. Explanation + Banter (3–35s): Peter explains clearly with humor. Stewie adds brief interruptions or snark. Peter simplifies.\n"
+        "3. Callback/Punchline (35–45s): Peter or Stewie ends with a clever twist, callback, or funny summation that reinforces the core idea.\n\n"
+
+        "Scriptwriting rules:\n"
+        "• Use medium-length sentences that flow when spoken.\n"
+        "• Match emotional tone and rhythm between speakers.\n"
+        "• Avoid monologues. Alternate lines every 1–2 beats.\n"
+        "• Stewie is curious, sharp, and impatient. Peter is casual, confident, and metaphor-heavy — but not random.\n"
+        "• Do not use ellipses, stage directions, or narration. Only output dialogue in this format:\n"
+        "   Stewie: [his line]\n"
+        "   Peter: [his line]\n\n"
+
+        "Keep the energy tight and the value clear. You're not just entertaining — you're hijacking a scroll to *teach something cool fast*."
+    )
+}
+
+def generate_variants(topic: str, count: int = 5):
+    system_msg = build_system_message()
+    user_msg = build_user_message(topic)
+    scripts = []
+    for i in range(count):
+        response = client.chat.completions.create(
+            model="gpt-4.1",
+            messages=[system_msg, user_msg],
+            max_tokens=500,
+            temperature=0.7 + i * 0.05
         )
-    }
-
-    # 3. Call the OpenAI ChatCompletion endpoint:
-    response = client.chat.completions.create(model=model,
-    messages=[system_message, user_message],
-    max_tokens=max_tokens,
-    temperature=temperature)
-
-    # 4. Extract and return the script text:
-    script_text = response.choices[0].message.content.strip()
-    return script_text
+        script = response.choices[0].message.content.strip()
+        scripts.append(script)
+    return scripts
 
 
-# Example usage:
-if __name__ == "__main__":
-    # Example: “What happened to cause the 2008 financial collapse”
-    prompt_topic = "What is an LLC and why do rich people have them personally?" 
-    #prompt_topic = "What are put options?"
-    script = generate_peter_stewie_script(prompt_topic)
-    print(script)
+def evaluate_scripts(topic: str, scripts: list[str]) -> int:
+    eval_prompt = [
+        {
+            "role": "system",
+            "content": (
+                "You are a short-form video strategist. Your task is to review multiple script versions for a TikTok. "
+                "You must choose the **single best script** — the one most likely to go viral based on hook strength, clarity, pacing, and entertainment value.\n\n"
+                "Return ONLY a JSON object in this format:\n"
+                "{\n  \"selected_index\": [number from 1–5],\n  \"reason\": \"Short explanation here.\"\n}"
+            )
+        },
+        {
+            "role": "user",
+            "content": (
+                f"Here are 5 TikTok scripts for the topic: \"{topic}\"\n\n"
+                + "\n\n---\n\n".join([f"Script {i+1}:\n{script}" for i, script in enumerate(scripts)])
+            )
+        }
+    ]
+    
+    response = client.chat.completions.create(
+        model="gpt-4.1",
+        messages=eval_prompt,
+        max_tokens=500,
+        temperature=0.5
+    )
+
+    raw = response.choices[0].message.content.strip()
+
+    # Try parsing the JSON response
+    try:
+        result = json.loads(raw)
+        best_index = result.get("selected_index", 1)
+        reason = result.get("reason", "No reason provided.")
+    except Exception as e:
+        best_index = 1
+        reason = f"[PARSE ERROR] {e}\nRaw response: {raw}"
+
+    return best_index, reason
+
+
+def generate_best_script(topic: str, save_path: str = "script.txt"):
+    scripts = generate_variants(topic, count=5)
+    best_index, reason = evaluate_scripts(topic, scripts)
+    best_script = scripts[best_index - 1]
+
+    with open(save_path, "w", encoding="utf-8") as f:
+        f.write(best_script)
+
+    print(f"\n🎯 Best Script: Variant {best_index}\n🧠 Why: {reason}")
+    return best_script

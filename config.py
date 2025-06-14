@@ -1,0 +1,12 @@
+VIDEO_PATH = "SO6.mp4"
+CAPTIONS_PATH = "captions.json"
+FONT_PATH = "fonts/Bangers-Regular.ttf"
+FONT_SIZE = 85
+STEWIE_COLOR = "#ADD8E6"  # Light blue
+PETER_COLOR = "#FFD700"   # Light gold
+CAPTION_WIDTH_PCT = 0.90
+STROKE_WIDTH = 2
+STROKE_COLOR = "black"
+PETER_IMG_PATH = "images/peter_resized.png"
+STEWIE_IMG_PATH = "images/stewie_resized.png"
+CHAR_IMG_HEIGHT = 500  # You can adjust for size
