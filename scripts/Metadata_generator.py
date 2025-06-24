@@ -112,5 +112,18 @@ def process_schedule(schedule_path: str):
             })
             print(f"✅ Processed: {topic}")
 
+def save_metadata_for_script(script_path: str, metadata_dir="metadata"):
+    metadata = generate_post_metadata_from_script(script_path)
+    os.makedirs(metadata, exist_ok=True)
+    filename = sanitize_filename(metadata.get("title", "untitled")) + ".json"
+    out_path = os.path.join(metadata_dir, filename)
+
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(metadata, f, indent=2, ensure_ascii=False)
+
+    print(f"[📦] Metadata saved: {out_path}")
+    return metadata
+
+
 if __name__ == "__main__":
     process_schedule("video_schedule.tsv")

@@ -72,7 +72,7 @@ def build_captions(script_path, audio_dir):
 def estimate_syllables(word):
     return max(textstat.syllable_count(word), 1)  # fallback to 1 to avoid zero
 
-def syllable_chunked_captions(captions, max_syllables=5):
+def syllable_chunked_captions(captions, max_syllables=3):
     """
     Splits captions into phrases of ≤ max_syllables each,
     reassigns timing across the resulting chunks.

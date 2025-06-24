@@ -1,17 +1,54 @@
-# Byte-compiled / cache
-__pycache__/
-*.py[cod]
+###############################################################################
+# ☁️  LARGE / BINARY ARTEFACTS
+###############################################################################
+# Audio & video
+*.wav
+*.mp3
+*.flac
+*.aac
+*.mp4
+*.mkv
+*.mov
+*.avi
 
-# Virtual environment
-.venv/
-#ENV
-.env
-# VS Code
-.vscode/
+# High-res images & frame dumps
+*.png
+*.jpg
+*.jpeg
+*.tif
+*.tiff
+*.webp
 
-# OS
-.DS_Store
+# Machine-learning checkpoints & embeddings
+*.pt
+*.pth
+*.ckpt
+*.h5
+*.onnx
+*.pb
+*.npz
+*.npy
 
-# Project output
-audio/
+# Vector stores / local DBs
+*.sqlite*
+*.duckdb
+*.faiss
+*.ann
+
+# Misc binaries
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+*.iso
+*.exe
+*.dll
+
+# Pipeline scratch/output dirs
+assets/AudioTemp/
+ProcessedAudio/
+backgrounds/
 output/
+.venv/
+.env
